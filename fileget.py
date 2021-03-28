@@ -58,7 +58,7 @@ def getFileFromServer(NSP, PATH):
         Nothing or index 
     """
     # Get DOMAIN and PATH
-    dompath = re.match(r"fsp:\/\/(.*)\/(.*)", PATH.lower())
+    dompath = re.match(r"fsp:\/\/([^\/]*)\/(.*)", PATH.lower())
     if dompath is None:
         print("[ERROR] Invalid path syntax!")
         exit(0)
@@ -91,15 +91,15 @@ def getFileFromServer(NSP, PATH):
 
         print("[INFO] Connected to " + DOMAIN)
         # Send request
-        print("[INFO] Sending request")
         reqfil.sendall(REQI.encode('UTF-8'))
         # Receive header
-        resfil = reqfil.recv(32)
-        answer = re.match(r"FSP/1.0 Success\r\nLength:(.*)\r(.*)", resfil)
+        resfil = reqfil.recv(1024)
+        answer = re.match(r"FSP\/1\.0 Success\r\nLength:(.*)\r", resfil)
+        content = re.match(r"FSP\/1\.0 Success\r\nLength:[0-9]*\r\n\r\n(.*)", resfil, re.S)
         if answer is not None:
             print("[INFO] Downloading file " + FILENAME)
             with open(FILENAME, "wb") as f:
-                f.write(answer.groups()[1])
+                f.write(content.groups()[0])
                 while True:
                     # Receive 1024 bytes
                     bytes_read = reqfil.recv(1024)
